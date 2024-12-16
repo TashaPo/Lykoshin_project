@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 // Настройка подключения к базе данных PostgreSQL
 const pool = new Pool({
-    user: 'user', // имя пользователя
+    user: 'postgres', // имя пользователя
     host: 'localhost', // адрес сервера
     database: 'auth_db', // имя базы данных
     password: 1234, // пароль
