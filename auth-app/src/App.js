@@ -1,25 +1,17 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Login from './Login';
-import Register from './Register';
-import ProtectedPage from './ProtectedPage'; // Импортируем защищенную страницу
-import { Navigate } from 'react-router-dom'; // Импортируем Navigate
-
-// Компонент для защиты маршрутов
-const PrivateRoute = ({ component: Component }) => {
-    const isAuthenticated = !!localStorage.getItem('token'); // Проверяем наличие токена
-
-    return isAuthenticated ? <Component /> : <Navigate to="/login" />; // Используем Navigate для перенаправления
-};
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './Login'; // Импортируйте ваш компонент входа
+import Register from './Register'; // Импортируйте ваш компонент регистрации
+import MainPage from './MainPage'; // Импортируйте ваш компонент календаря
 
 const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/protected" element={<PrivateRoute component={ProtectedPage} />} /> {/* Защищенный маршрут */}
-                <Route path="/" element={<Navigate to="/login" />} /> {/* Перенаправление на страницу входа по умолчанию */}
+                <Route path="/main" element={<MainPage />} /> {/* Новый маршрут для календаря */}
+                <Route path="/" element={<MainPage />} /> {/* Главная страница по умолчанию */}
             </Routes>
         </Router>
     );

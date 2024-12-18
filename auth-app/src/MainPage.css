@@ -1,0 +1,32 @@
+.main-page {
+    display: flex;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+.calendar {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+.profile-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.month-view {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.day {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
