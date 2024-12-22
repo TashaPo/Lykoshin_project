@@ -1,0 +1,6 @@
+DB_USER=user
+DB_HOST=localhost
+DB_NAME=planner
+DB_PASSWORD=1234
+DB_PORT=5432
+JWT_SECRET=your_jwt_secret
