@@ -1,0 +1,74 @@
+body {
+    background-color: #aec6cf; /* Фон страницы */
+    color: #0b3342; /* Цвет символов (букв и цифр) */
+    font-family: Arial, sans-serif; /* Шрифт для всего приложения */
+}
+
+.month-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px auto; /* Центрирование по горизонтали */
+    background-color: #ffffff; /* Фон календаря */
+    padding: 20px; /* Отступы для календаря */
+    border-radius: 30px; /* Закругленные углы для календаря */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Тень для календаря */
+    width: 90%; /* Ширина календаря 90% от ширины страницы */
+    max-width: 1200px; /* Максимальная ширина для больших экранов */
+    padding-bottom: 40px; /* Отступ снизу для фона календаря */
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    height: 50px; /* Высота верхней строки */
+}
+
+.header button {
+    background-color: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #0b3342; /* Цвет текста для кнопок */
+}
+
+.header h2 {
+    margin: 0 20px;
+    font-size: 24px;
+    color: #0b3342; /* Цвет текста заголовка */
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 столбцов для дней недели */
+    gap: 10px;
+    width: 100%; /* Занимает всю ширину родительского контейнера */
+}
+
+.day-cell {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 10px; /* Закругленные углы */
+    text-align: center;
+    position: relative;
+    min-height: 10vh; /* Минимальная высота ячейки, измените по необходимости */
+    flex-grow: 1; /* Позволяет ячейкам занимать доступное пространство */
+}
+
+.day-cell.today {
+    background-color: #416471; /* Светло-серая ячейка для текущего дня */
+    color: white; /* Цвет текста для текущего дня */
+}
+
+.day-cell.prev-month,
+.day-cell.next-month {
+    color: #a2a4a4; /* Цвет для чисел предыдущего и следующего месяца */
+}
+
+.day-cell ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
