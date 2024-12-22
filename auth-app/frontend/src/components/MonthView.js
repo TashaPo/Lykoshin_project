@@ -70,7 +70,7 @@ const MonthView = ({ userId, onDayClick }) => {
 
         // Рассчитываем количество пустых ячеек для следующего месяца
         const totalDays = calendarDays.length;
-        const emptyCellsAfter = totalCells - totalDays; // Количество пустых ячеек после последнего числа месяца
+        const emptyCellsAfter = 7 - totalDays; // Количество пустых ячеек после последнего числа месяца
         for (let i = 1; i <= emptyCellsAfter; i++) {
             calendarDays.push(
                 <div key={`next-${i}`} className="day-cell next-month">
