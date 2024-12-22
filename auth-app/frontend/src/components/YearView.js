@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const YearView = ({ userId }) => {
+const YearView = ({ userId, setSelectedDate }) => {
     const [events, setEvents] = useState([]);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
@@ -24,16 +24,34 @@ const YearView = ({ userId }) => {
     ];
 
     const getDaysInMonth = (month) => {
-        return new Date(currentYear, month + 1, 0).getDate(); // Получаем количество дней в месяце
+        return new Date(currentYear, month + 1, 0).getDate();
     };
 
     const getFirstDayOfMonth = (month) => {
-        return new Date(currentYear, month, 1).getDay(); // Получаем первый день месяца
+        return new Date(currentYear, month, 1).getDay();
+    };
+
+    const handleNextYear = () => {
+        setCurrentYear(currentYear + 1);
+        setSelectedDate(new Date(currentYear + 1, 0, 1)); // Устанавливаем выбранную дату на 1 января следующего года
+    };
+
+    const handlePreviousYear = () => {
+        setCurrentYear(currentYear - 1);
+        setSelectedDate(new Date(currentYear - 1, 0, 1)); // Устанавливаем выбранную дату на 1 января предыдущего года
     };
 
     return (
         <div style={{ textAlign: 'center', margin: '20px' }}>
             <h2 style={{ marginBottom: '20px', fontSize: '2em' }}>{currentYear}</h2>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+                <button onClick={handlePreviousYear} style={{ marginRight: '10px' }}>
+                    ← Год назад
+                </button>
+                <button onClick={handleNextYear} style={{ marginLeft: '10px' }}>
+                    Год вперед →
+                </button>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', width: '90%', margin: '0 auto' }}>
                 {months.map((month, index) => (
                     <div key={index} style={{ padding: '10px', backgroundColor: '#ffffff', borderRadius: '30px', boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)' }}>
@@ -45,17 +63,13 @@ const YearView = ({ userId }) => {
                                     const firstDay = getFirstDayOfMonth(index);
                                     const rows = [];
                                     let cells = [];
-                                    
 
-                                    // Приводим первый день к понедельнику (0 - воскресенье, 1 - понедельник, ..., 6 - суббота)
                                     const adjustedFirstDay = (firstDay === 0) ? 6 : firstDay - 1;
 
-                                    // Добавляем пустые ячейки перед первым днем месяца
                                     for (let i = 0; i < adjustedFirstDay; i++) {
                                         cells.push(<td key={`empty-${i}`}></td>);
                                     }
 
-                                    // Заполняем ячейки с числами месяца
                                     for (let day = 1; day <= daysInMonth; day++) {
                                         const date = new Date(currentYear, index, day);
                                         cells.push(
@@ -71,14 +85,12 @@ const YearView = ({ userId }) => {
                                             </td>
                                         );
 
-                                        // Если достигли конца недели, добавляем строку
                                         if ((day + adjustedFirstDay) % 7 === 0) {
                                             rows.push(<tr key={`row-${rows.length}`}>{cells}</tr>);
-                                            cells = []; // Сбрасываем ячейки для следующей строки
+                                            cells = [];
                                         }
                                     }
 
-                                    // Добавляем оставшиеся ячейки, если они есть
                                     if (cells.length > 0) {
                                         rows.push(<tr key={`row-${rows.length}`}>{cells}</tr>);
                                     }

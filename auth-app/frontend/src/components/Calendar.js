@@ -68,7 +68,7 @@ const Calendar = ({ userId }) => {
                 <Route path="/day" element={<DayView userId={userId} date={selectedDate} />} />
                 <Route path="/week" element={<WeekView />} />
                 <Route path="/month" element={<MonthView userId={userId} onDayClick={handleDayClick} />} />
-                <Route path="/year" element={<YearView />} />
+                <Route path="/year" element={<YearView userId={userId} setSelectedDate={setSelectedDate} />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} /> {/* Добавьте маршрут для регистрации */}
                 <Route path="/" element={<MonthView userId={userId} onDayClick={handleDayClick} />} />
