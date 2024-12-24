@@ -9,13 +9,6 @@ const DayView = ({ userId }) => {
     const [currentDate, setCurrentDate] = useState(initialDate);
 
     useEffect(() => {
-        // Устанавливаем текущую дату при изменении initialDate
-        if (initialDate) {
-            setCurrentDate(initialDate);
-        }
-    }, [initialDate]);
-
-    useEffect(() => {
         const fetchEvents = async () => {
             if (currentDate) {
                 try {
@@ -44,6 +37,22 @@ const DayView = ({ userId }) => {
         previousDay.setDate(currentDate.getDate() - 1);
         setCurrentDate(previousDay);
     };
+
+    // Обработка нажатий клавиш
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === 'ArrowRight') {
+                handleNextDay();
+            } else if (event.key === 'ArrowLeft') {
+                handlePreviousDay();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [currentDate]);
 
     return (
         <div style={{ 
