@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Импортируем useNavigate для навигации
 import axios from 'axios';
 
 const YearView = ({ userId, setSelectedDate }) => {
     const [events, setEvents] = useState([]);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+    const navigate = useNavigate(); // Хук для навигации
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -32,24 +34,33 @@ const YearView = ({ userId, setSelectedDate }) => {
     };
 
     const handleNextYear = () => {
-        setCurrentYear(currentYear + 1);
-        setSelectedDate(new Date(currentYear + 1, 0, 1)); // Устанавливаем выбранную дату на 1 января следующего года
+        const nextYear = currentYear + 1;
+        setCurrentYear(nextYear);
+        setSelectedDate(new Date(nextYear, 0, 1));
     };
 
     const handlePreviousYear = () => {
-        setCurrentYear(currentYear - 1);
-        setSelectedDate(new Date(currentYear - 1, 0, 1)); // Устанавливаем выбранную дату на 1 января предыдущего года
+        const previousYear = currentYear - 1;
+        setCurrentYear(previousYear);
+        setSelectedDate(new Date(previousYear, 0, 1));
     };
+
+    const handleDayClick = (date) => {
+        setSelectedDate(date); // Устанавливаем выбранную дату
+        navigate('/day', { state: { selectedDate: date } }); // Переходим на представление дня с передачей выбранной даты
+    };
+
+    const today = new Date(); // Получаем сегодняшнюю дату
 
     return (
         <div style={{ textAlign: 'center', margin: '20px' }}>
-            <h2 style={{ marginBottom: '20px', fontSize: '2em' }}>{currentYear}</h2>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
-                <button onClick={handlePreviousYear} style={{ marginRight: '10px' }}>
-                    ← Год назад
+                <button onClick={handlePreviousYear} style={{ cursor: 'pointer', padding: '10px', fontSize: '16px', color: '#ffffff', backgroundColor: '#166582', border: 'none', borderRadius: '5px' }}>
+                    ←
                 </button>
-                <button onClick={handleNextYear} style={{ marginLeft: '10px' }}>
-                    Год вперед →
+                <h2 style={{ marginBottom: '20px', fontSize: '2em' }}>{currentYear}</h2>
+                <button onClick={handleNextYear} style={{ cursor: 'pointer', padding: '10px', fontSize: '16px', color: '#ffffff', backgroundColor: '#166582', border: 'none', borderRadius: '5px' }}>
+                    →
                 </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', width: '90%', margin: '0 auto' }}>
@@ -72,8 +83,21 @@ const YearView = ({ userId, setSelectedDate }) => {
 
                                     for (let day = 1; day <= daysInMonth; day++) {
                                         const date = new Date(currentYear, index, day);
+                                        const isToday = date.toDateString() === today.toDateString();
+
                                         cells.push(
-                                            <td key={day}>
+                                            <td
+                                                key={day}
+                                                style={{
+                                                    backgroundColor: isToday ? '#165882' : 'transparent',
+                                                    color: isToday ? '#ffffff' : 'black',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'center',
+                                                    padding: '5px',
+                                                    borderRadius: '5px',
+                                                }}
+                                                onClick={() => handleDayClick(date)} // Обработчик клика
+                                            >
                                                 {day}
                                                 <ul style={{ listStyleType: 'none', padding: 0 }}>
                                                     {events

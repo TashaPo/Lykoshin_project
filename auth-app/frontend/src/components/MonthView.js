@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Импортируем useNavigate для навигации
 import './styles/MonthView.css'; // Импортируем стили
 
-const MonthView = ({ userId, onDayClick }) => {
+const MonthView = ({ userId }) => {
     const [events, setEvents] = useState([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const navigate = useNavigate(); // Хук для навигации
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -54,7 +56,7 @@ const MonthView = ({ userId, onDayClick }) => {
                 <div 
                     key={date.toDateString()} 
                     className={`day-cell ${isToday(date) ? 'today' : ''}`}
-                    onClick={() => onDayClick(date)} // Обработчик клика по ячейке
+                    onClick={() => handleDayClick(date)} // Обработчик клика по ячейке
                 >
                     <span>{day}</span>
                     <ul>
@@ -70,7 +72,7 @@ const MonthView = ({ userId, onDayClick }) => {
 
         // Рассчитываем количество пустых ячеек для следующего месяца
         const totalDays = calendarDays.length;
-        const emptyCellsAfter = 7 - totalDays; // Количество пустых ячеек после последнего числа месяца
+        const emptyCellsAfter = totalCells - totalDays; // Количество пустых ячеек после последнего числа месяца
         for (let i = 1; i <= emptyCellsAfter; i++) {
             calendarDays.push(
                 <div key={`next-${i}`} className="day-cell next-month">
@@ -85,6 +87,10 @@ const MonthView = ({ userId, onDayClick }) => {
     const isToday = (date) => {
         const today = new Date();
         return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    };
+
+    const handleDayClick = (date) => {
+        navigate('/day', { state: { selectedDate: date } }); // Переходим на представление дня с передачей выбранной даты
     };
 
     return (

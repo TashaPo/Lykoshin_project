@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-const DayView = ({ userId, initialDate }) => {
+const DayView = ({ userId }) => {
+    const location = useLocation();
+    const initialDate = location.state?.selectedDate || new Date(); // Получаем дату из состояния маршрута или используем текущую дату
     const [events, setEvents] = useState([]);
-    const [currentDate, setCurrentDate] = useState(initialDate || new Date());
+    const [currentDate, setCurrentDate] = useState(initialDate);
+
+    useEffect(() => {
+        // Устанавливаем текущую дату при изменении initialDate
+        if (initialDate) {
+            setCurrentDate(initialDate);
+        }
+    }, [initialDate]);
 
     useEffect(() => {
         const fetchEvents = async () => {

@@ -19,11 +19,10 @@ const WeekView = ({ userId }) => {
     }, [userId]);
 
     const getWeekDays = (date) => {
-        const start = date.getDate() - date.getDay(); // Начало недели
         const weekDays = [];
         for (let i = 0; i < 7; i++) {
             const day = new Date(date);
-            day.setDate(start + i);
+            day.setDate(date.getDate() + i); // Добавляем дни к текущей дате
             weekDays.push(day);
         }
         return weekDays;
