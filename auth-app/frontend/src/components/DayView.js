@@ -96,3 +96,4 @@ const DayView = ({ userId }) => {
 }; 
  
 export default DayView;
+
