@@ -6,106 +6,92 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Отдельное состояние для повторного пароля
-    const [errorMessage, setErrorMessage] = useState(''); // Для отображения ошибок
-    const navigate = useNavigate(); // Используем useNavigate для навигации
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        
-        // password check
+    
         if (password !== confirmPassword) {
             setErrorMessage('Пароли не совпадают');
             return;
         }
-
+    
         try {
-            const response = await fetch('/register', {
+            const response = await fetch('http://localhost:5000/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email: username, password }),
             });
             const data = await response.json();
-
+    
             if (response.ok) {
-                console.log(data.message);
-                navigate('/login'); // Переадресация на страницу входа
+                navigate('/login');
             } else {
-                console.error(data.message); // Отображение сообщения об ошибке
+                setErrorMessage(data.message || 'Ошибка при регистрации');
             }
         } catch (error) {
             console.error('Ошибка при регистрации:', error);
+            setErrorMessage('Ошибка подключения к серверу');
         }
-    };
+    };    
 
     return (
         <div style={styles.container}>
             <div style={styles.formContainer}>
                 <h1>Регистрация</h1>
+                {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
                 <form onSubmit={handleRegister}>
-                    <form>
                     <label style={styles.label}>Введите логин:</label>
-                    <input 
-                        type="text" 
-                        value={username} 
-                        onChange={(e) => setUsername(e.target.value)} 
+                    <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         style={styles.input}
                     />
-                    </form>
-                    <form>
                     <label style={styles.label}>Введите пароль:</label>
-                    <input 
-                        type={showPassword ? "text" : "password"} 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         style={styles.input}
                     />
-                    </form>
-                    <form>
                     <div style={styles.checkboxContainer}>
-                        <input 
-                            type="checkbox" 
-                            id="showPassword" 
-                            checked={showPassword} 
-                            onChange={() => setShowPassword(!showPassword)} 
+                        <input
+                            type="checkbox"
+                            id="showPassword"
+                            checked={showPassword}
+                            onChange={() => setShowPassword(!showPassword)}
                             style={styles.checkbox}
                         />
                         <label htmlFor="showPassword" style={styles.checkboxLabel}>
                             Показать пароль
                         </label>
                     </div>
-                    </form>
-                    <form>
                     <label style={styles.label}>Введите пароль повторно:</label>
-                    <input 
-                        type={showConfirmPassword ? "text" : "password"} 
-                        value={confirmPassword} 
-                        onChange={(e) => setConfirmPassword(e.target.value)} 
+                    <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         style={styles.input}
                     />
-                    </form>
-                    <form>
                     <div style={styles.checkboxContainer}>
-                        <input 
-                            type="checkbox" 
-                            id="showConfirmPassword" 
-                            checked={showConfirmPassword} 
-                            onChange={() => setShowConfirmPassword(!showConfirmPassword)} 
+                        <input
+                            type="checkbox"
+                            id="showConfirmPassword"
+                            checked={showConfirmPassword}
+                            onChange={() => setShowConfirmPassword(!showConfirmPassword)}
                             style={styles.checkbox}
                         />
                         <label htmlFor="showConfirmPassword" style={styles.checkboxLabel}>
                             Показать пароль
                         </label>
                     </div>
-                    </form>
-                    <form>
-                    <Link to="/login">Уже есть аккаунт? Войти</Link>
-                    </form>
-                    <form>
+                    <div><Link to="/login">Уже есть аккаунт? Войти</Link></div>
                     <button style={styles.button} type="submit">Зарегистрироваться</button>
-                    </form>
                 </form>
             </div>
         </div>
