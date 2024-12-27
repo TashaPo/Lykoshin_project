@@ -6,10 +6,14 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false); // Для состояния загрузки
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setIsLoading(true); // Установить состояние загрузки
+        setErrorMessage(''); // Очистить предыдущее сообщение об ошибке
+
         try {
             const response = await fetch('http://localhost:5000/login', {
                 method: 'POST',
@@ -19,24 +23,28 @@ const Login = () => {
                 body: JSON.stringify({ email: username, password }),
             });
             const data = await response.json();
-    
+
             if (response.ok) {
                 localStorage.setItem('token', data.token);
-                navigate('/main');
+                navigate('/month');
             } else {
                 setErrorMessage(data.message || 'Ошибка при входе');
             }
         } catch (error) {
             console.error('Ошибка при входе:', error);
             setErrorMessage('Ошибка подключения к серверу');
+        } finally {
+            setIsLoading(false); // Снять состояние загрузки
         }
-    };    
+    };
 
     return (
         <div style={styles.container}>
             <div style={styles.formContainer}>
                 <h1>Вход</h1>
-                {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+                {errorMessage && (
+                    <div style={styles.errorMessage}>{errorMessage}</div>
+                )}
                 <form onSubmit={handleLogin}>
                     <label style={styles.label}>Введите логин:</label>
                     <input
@@ -44,6 +52,7 @@ const Login = () => {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         style={styles.input}
+                        autoFocus
                     />
                     <label style={styles.label}>Введите пароль:</label>
                     <input
@@ -65,7 +74,17 @@ const Login = () => {
                         </label>
                     </div>
                     <div><Link to="/register">Нет аккаунта? Зарегистрироваться</Link></div>
-                    <button type="submit" style={styles.button}>Войти</button>
+                    <button
+                        type="submit"
+                        style={{
+                            ...styles.button,
+                            backgroundColor: isLoading ? '#cccccc' : '#19789c',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                        }}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Вход...' : 'Войти'}
+                    </button>
                 </form>
             </div>
         </div>
@@ -84,8 +103,8 @@ const styles = {
         backgroundColor: '#e9f7fb',
         borderRadius: '15px',
         padding: '20px',
-        width: '90%', // Ширина адаптируемая
-        maxWidth: '600px', // Максимальная ширина
+        width: '90%',
+        maxWidth: '400px',
         boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
         textAlign: 'center',
     },
@@ -100,33 +119,38 @@ const styles = {
     button: {
         padding: '10px 20px',
         borderRadius: '20px',
-        width: '30%',
+        width: '50%',
         border: 'none',
-        backgroundColor: '#19789c', // Цвет кнопки
+        backgroundColor: '#19789c',
         color: 'white',
         cursor: 'pointer',
         transition: 'background-color 0.3s',
-        marginTop: '20px', // Отступ сверху для кнопки
+        marginTop: '20px',
     },
     checkboxContainer: {
         display: 'flex',
         alignItems: 'center',
         margin: '10px 0',
-        marginTop: '-4px',
+        justifyContent: 'flex-start', // Выравнивание по левому краю
+        paddingLeft: '10%',
     },
     checkbox: {
         marginRight: '10px',
-        marginLeft: '50px',
     },
     checkboxLabel: {
         cursor: 'pointer',
     },
     label: {
-        marginTop: '20px', // Отступ сверху для label
-        display: 'block', // Чтобы label занимал всю ширину
-        textAlign: 'left', // Выровнять текст по левому краю
-        width: '80%', // Ширина метки
-        marginLeft: '9%', // Отступ слева для метки
+        display: 'block',
+        textAlign: 'left',
+        width: '80%',
+        marginLeft: '10%',
+    },
+    link: {
+        display: 'block',
+        marginTop: '10px',
+        textDecoration: 'none',
+        color: '#19789c',
     },
 };
 

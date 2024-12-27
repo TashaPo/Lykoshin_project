@@ -8,7 +8,7 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Настройка пула соединений с базой данных
+// Настройка подключения к базе данных PostgreSQL
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -17,7 +17,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Middleware для обработки CORS и JSON
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -32,7 +32,7 @@ const authenticateToken = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: 'Недействительный токен' });
     }
-    req.user = user; // Сохраняем информацию о пользователе в запросе
+    req.user = user;
     next();
   });
 };
@@ -77,9 +77,7 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Неверный пароль' });
     }
 
-    // Генерация JWT токена
     const token = jwt.sign({ id: user.user_id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
     res.status(200).json({ message: 'Вход успешен', token });
   } catch (error) {
     console.error('Ошибка при входе:', error);
@@ -87,46 +85,93 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Маршрут для получения событий пользователя
-app.get('/api/events', authenticateToken, async (req, res) => {
-  try {
-    const eventsResult = await pool.query('SELECT * FROM events WHERE user_id = $1', [req.user.id]);
-    res.status(200).json(eventsResult.rows);
-  } catch (error) {
-    console.error('Ошибка при получении событий:', error);
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Универсальный маршрут для сохранения события или задачи
+app.post('/api/save', authenticateToken, async (req, res) => {
+  const { title, description, start_date, end_date } = req.body;
 
-// Маршрут для получения задач пользователя
-app.get('/api/tasks', authenticateToken, async (req, res) => {
   try {
-    const tasksResult = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [req.user.id]);
-    res.status(200).json(tasksResult.rows);
-  } catch (error) {
-    console.error('Ошибка при получении задач:', error);
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+    // Преобразование строк дат в объекты Date
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
 
-// Маршрут для создания события
-app.post('/api/events', authenticateToken, async (req, res) => {
-    const { userId, title, description, event_date } = req.body;
-  
-    try {
+    // Проверка корректности дат
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ message: 'Некорректные значения даты или времени' });
+    }
+
+    // Корректировка времени для локальной зоны
+    const correctStartDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+    const correctEndDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+
+    // Преобразование дат в строки для сохранения
+    const startDateISO = correctStartDate.toISOString().replace('Z', '');
+    const endDateISO = correctEndDate.toISOString().replace('Z', '');
+
+    // Проверка на совпадение времени начала и конца
+    if (correctStartDate.getTime() === correctEndDate.getTime()) {
+      // Сохраняем в таблицу events
+      console.log('Сохраняем как событие...');
+      console.log('Event Date:', startDateISO);
+
       const newEvent = await pool.query(
         'INSERT INTO events (user_id, title, description, event_date) VALUES ($1, $2, $3, $4) RETURNING *',
-        [userId, title, description, event_date]
+        [req.user.id, title, description, startDateISO]
       );
-  
-      res.status(201).json({ message: 'Событие добавлено', event: newEvent.rows[0] });
-    } catch (error) {
-      console.error('Ошибка при добавлении события:', error);
-      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-    }
-  });
+      return res.status(201).json({ message: 'Event added', event: newEvent.rows[0] });
+    } else {
+      // Сохраняем в таблицу tasks
+      console.log('Сохраняем как задачу...');
+      console.log('Start Date:', startDateISO);
+      console.log('End Date:', endDateISO);
 
-// Обработка других маршрутов (например, для 404)
+      const newTask = await pool.query(
+        'INSERT INTO tasks (user_id, title, description, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [req.user.id, title, description, startDateISO, endDateISO]
+      );
+      return res.status(201).json({ message: 'Task added', task: newTask.rows[0] });
+    }
+  } catch (error) {
+    console.error('Ошибка при сохранении данных:', error);
+    return res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+  }
+});
+
+// Маршрут для получения событий и задач на указанную дату
+app.get('/api/schedule', authenticateToken, async (req, res) => {
+  const { date } = req.query;
+
+  try {
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const events = await pool.query(
+      `SELECT 'event' AS type, event_date AS start_time, NULL AS end_time, title, description 
+       FROM events 
+       WHERE user_id = $1 AND event_date >= $2 AND event_date < $3`,
+      [req.user.id, startDate, endDate]
+    );
+
+    const tasks = await pool.query(
+      `SELECT 'task' AS type, start_date AS start_time, end_date AS end_time, title, description 
+       FROM tasks 
+       WHERE user_id = $1 AND start_date >= $2 AND start_date < $3`,
+      [req.user.id, startDate, endDate]
+    );
+
+    // Объединяем и сортируем данные
+    const schedule = [...events.rows, ...tasks.rows].sort(
+      (a, b) => new Date(a.start_time) - new Date(b.start_time)
+    );
+
+    res.status(200).json(schedule);
+  } catch (error) {
+    console.error('Ошибка при получении расписания:', error);
+    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+  }
+});
+
+// Обработка неизвестных маршрутов
 app.use((req, res) => {
   res.status(404).json({ message: 'Маршрут не найден' });
 });

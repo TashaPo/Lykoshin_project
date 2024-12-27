@@ -2,155 +2,115 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { useNavigate } from 'react-router-dom'; // Импортируем useNavigate
-import './styles/EventForm.css'; // Путь к стилям
+import { useNavigate } from 'react-router-dom';
+import './styles/EventForm.css';
 
-const EventForm = ({ userId }) => {
-  const navigate = useNavigate(); // Инициализируем navigate
+const EventForm = () => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(null);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if date is valid
     if (!date) {
-        console.error('Date is required');
-        return;
+      console.error('Дата обязательна');
+      return;
     }
 
-    // Format the date correctly
-    const eventDateParts = date.split('.');
-    if (eventDateParts.length !== 3) {
-        console.error('Invalid date format. Expected DD.MM.YYYY');
-        return;
-    }
-    const eventDate = new Date(`${eventDateParts[2]}-${eventDateParts[1]}-${eventDateParts[0]}`); // YYYY-MM-DD
+    const eventDate = new Date(date);
+    eventDate.setDate(eventDate.getDate() + 1);
 
-    // Validate the date
     if (isNaN(eventDate.getTime())) {
-        console.error('Invalid date value');
-        return;
+      console.error('Некорректное значение даты');
+      return;
     }
 
-    // Ensure start and end times are valid
-    const formattedStartTime = startTime.includes(':') ? `${startTime}:00` : `${startTime}:00`;
-    const formattedEndTime = endTime.includes(':') ? `${endTime}:00` : `${endTime}:00`;
+    const startDateTime = new Date(`${eventDate.toISOString().split('T')[0]}T${startTime}:00`);
+    const endDateTime = new Date(`${eventDate.toISOString().split('T')[0]}T${endTime}:00`);
 
-    // Create Date objects for start and end times
-    const startDateTime = new Date(`${eventDate.toISOString().split('T')[0]}T${formattedStartTime}`);
-    const endDateTime = new Date(`${eventDate.toISOString().split('T')[0]}T${formattedEndTime}`);
-
-    // Validate start and end times
     if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-        console.error('Invalid time value');
-        return;
+      console.error('Некорректное значение времени');
+      return;
     }
 
     try {
-        let response;
-
-        // If start and end times are the same, create an event
-        if (startTime === endTime) {
-            response = await axios.post('http://localhost:5000/api/events', {
-                userId,
-                title,
-                description,
-                event_date: startDateTime.toISOString(),
-            });
-            console.log('Событие добавлено:', response.data);
-        } else {
-            response = await axios.post('http://localhost:5000/api/tasks', {
-                userId,
-                title,
-                description,
-                due_date: endDateTime.toISOString(),
-                is_completed: false,
-            });
-            console.log('Задача добавлена:', response.data);
+      const response = await axios.post(
+        'http://localhost:5000/api/save',
+        {
+          title,
+          description,
+          start_date: startDateTime.toISOString(),
+          end_date: endDateTime.toISOString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
+      );
 
-        navigate('/calendar');
+      console.log('Данные сохранены:', response.data);
+      navigate('/month');
     } catch (error) {
-        console.error('Ошибка при добавлении события/задачи:', error);
+      console.error('Ошибка при сохранении данных:', error);
     }
-};
+  };
 
   return (
-    <div className="event-form-container" >
+    <div className="event-form-container">
       <h2>Добавление события/задачи</h2>
       <form onSubmit={handleSubmit}>
-        {/* Название события */}
         <div>
-        <label htmlFor="title">Название события:</label>
-        <input
-          type="text"
-          id="title"
-          placeholder="Введите название события"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        </div>
-
-        {/* Описание события */}
-        <div>
-        <label htmlFor="description">Описание задачи:</label>
-        <textarea
-          id="description"
-          placeholder="Введите описание задачи"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        </div>
-
-        {/* Выбор даты */}
-        <div>
-        <label htmlFor="date">Укажите дату:
-        
-        {/* Мини-календарь для выбора даты */}
-        <DatePicker
-          selected={date ? new Date(date.split('.').reverse().join('-')) : null}
-          onChange={(date) => setDate(date.toLocaleDateString())}
-          dateFormat="dd.MM.yyyy"
-          className="calendar-icon"
-        />
-        </label>
-        </div>
-
-        {/* Выбор времени начала */}
-        <div>
-          <label htmlFor="start-time">Укажите время начала:
+          <label htmlFor="title">Название события:</label>
           <input
             type="text"
+            id="title"
+            placeholder="Введите название события"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="description">Описание задачи:</label>
+          <textarea
+            id="description"
+            placeholder="Введите описание задачи"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="date">Укажите дату:</label>
+          <DatePicker
+            selected={date}
+            onChange={(date) => setDate(date)}
+            dateFormat="yyyy-MM-dd"
+            className="calendar-icon"
+          />
+        </div>
+        <div>
+          <label htmlFor="start-time">Время начала:</label>
+          <input
+            type="time"
             id="start-time"
-            placeholder="чч:мм"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
             required
-            style={{ width: '200px', marginLeft: '50px' }}
-          /> </label>
+          />
         </div>
-
-        {/* Выбор времени конца */}
         <div>
-          <label htmlFor="end-time">Укажите время конца: 
-          <input 
-            type="text"
+          <label htmlFor="end-time">Время конца:</label>
+          <input
+            type="time"
             id="end-time"
-            placeholder="чч:мм"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             required
-            style={{ width: '200px', marginLeft: '60px' }}
-          /> </label>
+          />
         </div>
-
-        {/* Кнопка отправки формы */}
         <button type="submit">Добавить событие/задачу</button>
       </form>
     </div>

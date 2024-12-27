@@ -9,7 +9,8 @@ const WeekView = ({ userId }) => {
         const fetchEvents = async () => {
             try {
                 const response = await axios.get(`http://localhost:5000/api/events?userId=${userId}`);
-                setEvents(response.data);
+                const sortedEvents = response.data.sort((a, b) => new Date(a.date) - new Date(b.date)); // Сортируем события по времени
+                setEvents(sortedEvents);
             } catch (error) {
                 console.error('Ошибка при получении событий:', error);
             }
@@ -22,7 +23,7 @@ const WeekView = ({ userId }) => {
         const weekDays = [];
         for (let i = 0; i < 7; i++) {
             const day = new Date(date);
-            day.setDate(date.getDate() + i); // Добавляем дни к текущей дате
+            day.setDate(date.getDate() + i);
             weekDays.push(day);
         }
         return weekDays;
